@@ -2,7 +2,6 @@
 
 AI 创作画布桌面应用。节点式无限画布 + 多模态生成（图像 / 视频 / 音频 / 文本）+ 剧本工作室，Electron 打包为 Windows 桌面端，本地 Python 进程提供后端能力。
 
-> 开发进度、已知坑与后续计划见 [DEV-STATUS.md](DEV-STATUS.md)。
 
 ## 技术栈
 
