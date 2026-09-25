@@ -1,0 +1,22 @@
+/*
+ * 模型选择浮层：正在打开的模型菜单会被搬到主题作用域内的浮层宿主（#v2-wrap /
+ * .story-workspace-root），逃离 .v2-canvas-stage 与节点卡片的 overflow:hidden 裁切。
+ * 定位由 src/components/shared/floatingMenuLayer.js 用视口坐标写入行内样式。
+ */
+.floating-menu-layer {
+  position: fixed;
+  z-index: 12050;
+  bottom: auto;
+  max-width: calc(100vw - 24px);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.floating-menu-layer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.floating-menu-layer::-webkit-scrollbar-thumb {
+  background: var(--stroke-15, rgba(255, 255, 255, .18));
+  border-radius: 999px;
+}

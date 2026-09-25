@@ -1,0 +1,32 @@
+import { isRunningHubWorkflowQueueTarget } from '../../../api/runningHubWorkflowQueue.js';
+import { resolveModelExecution } from '../../manifests/index.js';
+const DEFAULT_NON_RUNNINGHUB_CHARACTER_IMAGE_BATCH_CONCURRENCY = 0x2;
+function normalizeTargetCount(_0x1fb08e) {
+  return Math["max"](0x1, Math['trunc'](Number(_0x1fb08e) || 0x1));
+}
+export function resolvePersonReplacementCharacterImageBatchConcurrency({
+  targetCount = 0x1,
+  modelId = '',
+  provider = '',
+  providerProfileId = ''
+} = {}) {
+  const _0xabd86c = normalizeTargetCount(targetCount);
+  const _0x2bb822 = resolveModelExecution(modelId, {
+    'providerHint': provider
+  });
+  const _0x22c6ac = _0x2bb822?.["executionManifest"];
+  const _0x531d4a = {
+    'model': String(modelId || '')["trim"](),
+    'provider': String(provider || '')['trim'](),
+    'providerProfileId': String(providerProfileId || '')["trim"]()
+  };
+  if (isRunningHubWorkflowQueueTarget({
+    'providerId': _0x2bb822?.["modelManifest"]?.["provider"] || provider,
+    'adapterType': _0x22c6ac?.["adapterType"],
+    'executionManifest': _0x22c6ac,
+    'payload': _0x531d4a
+  })) {
+    return _0xabd86c;
+  }
+  return Math['min'](_0xabd86c, DEFAULT_NON_RUNNINGHUB_CHARACTER_IMAGE_BATCH_CONCURRENCY);
+}

@@ -1,0 +1,69 @@
+appId: com.canvasai.app
+productName: Canvas AI
+copyright: Copyright © 2026 Canvas AI
+
+directories:
+  output: dist
+  buildResources: build
+
+# 复用已下载的 Electron，避免联网重下
+electronDist: node_modules/electron/dist
+
+# app.asar 的内容：Electron 主进程 + 渲染层模块（供主进程 `../src/...` 引用）。
+# node_modules 不在此显式列出——electron-builder 会自动只打生产依赖，
+# 显式列出反而会把 devDependencies（含 electron-builder 自身）一并打进去。
+files:
+  - electron/**/*
+  - src/**/*
+  - api/**/*
+  - package.json
+
+# 原生模块必须解包，否则无法加载
+asarUnpack:
+  - node_modules/selection-hook/**/*
+
+# 渲染层资源树与内置运行时放在 asar 之外，
+# 布局与原版一致：resources/webapp/ 与 resources/runtime/
+extraResources:
+  - from: .
+    to: webapp
+    filter:
+      - index.html
+      - main.js
+      - style.css
+      - src/**/*
+      - api/**/*
+      - styles/**/*
+      - assets/**/*
+      - images/**/*
+      - vendor/**/*
+      - native/**/*
+      - build/**/*
+      - requirements*.txt
+  - from: .electron-runtime/runtime
+    to: runtime
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/app-icon.ico
+  artifactName: ${productName}-${version}-setup.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Canvas AI
+  deleteAppDataOnUninstall: false
+
+# 自更新源：阿里云 OSS 公共读 bucket，走通用 HTTP 静态布局。
+# 客户端在 url 下取 latest.yml 比对版本，再下载同名 setup.exe（差分走 .blockmap）。
+# 打包后 dist/ 下必须上传的三件套：setup.exe、setup.exe.blockmap、latest.yml，
+# 上传顺序与鉴权见 tools/publish-oss.mjs（本机无 node，用 Electron 内置 node 跑）。
+# 该 bucket 同时被 PicGo 当图床用，所以更新产物单独放在 updates/ 前缀下，不与图片混放。
+publish:
+  provider: generic
+  url: https://test-123456-img.oss-cn-beijing.aliyuncs.com/CanvasAI/updates/win

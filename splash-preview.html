@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canvas AI · 开屏动画预览（X 频谱版）</title>
+<style>
+  /* ===== 主题变量（取自 styles/themes） ===== */
+  :root{
+    --header-h:0px;
+    --brand-loader-progress-gradient:linear-gradient(90deg,#0D50FF,#F65391 58%,#FDB73F);
+    --brand-loader-glow:rgba(79,80,243,.22);
+    --brand-loader-ambient:rgba(168,77,206,.08);
+  }
+  html[data-theme="dark"]{
+    --canvas-stage-bg:#0d0e14;
+    --text-primary:#f2f3f7;
+    --text-muted:#8b8fa3;
+    --stroke-10:rgba(255,255,255,.10);
+  }
+  html[data-theme="light"]{
+    --canvas-stage-bg:#f6f7fb;
+    --text-primary:#151722;
+    --text-muted:#6b7085;
+    --stroke-10:rgba(0,0,0,.10);
+  }
+  :root{
+    --brand-loader-bg:var(--canvas-stage-bg);
+    --brand-loader-text:var(--text-primary);
+    --brand-loader-muted:var(--text-muted);
+    --brand-loader-track:var(--stroke-10);
+    --brand-loader-pulse:var(--text-primary);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--canvas-stage-bg);
+    font-family:"Inter","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    transition:background .3s ease;
+  }
+
+  /* ===== 预览控制条（仅预览用，非产品代码） ===== */
+  .preview-bar{
+    position:fixed;top:0;left:0;right:0;z-index:10001;
+    display:flex;gap:10px;align-items:center;justify-content:center;
+    padding:10px;background:color-mix(in srgb,var(--canvas-stage-bg) 82%,transparent);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--stroke-10);
+  }
+  .preview-bar button{
+    font:600 13px/1 inherit;color:var(--text-primary);
+    background:var(--stroke-10);border:1px solid var(--stroke-10);
+    padding:8px 14px;border-radius:999px;cursor:pointer;transition:.18s ease;
+  }
+  .preview-bar button:hover{background:color-mix(in srgb,#4F50F3 22%,transparent);border-color:#4F50F3}
+  .preview-bar .hint{font-size:12px;color:var(--text-muted)}
+
+  /* ===== 开屏 loader（复刻 boot.css 结构） ===== */
+  #v2-initial-loader{
+    position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;
+    background:var(--brand-loader-bg);isolation:isolate;
+  }
+  #v2-initial-loader::before{
+    position:absolute;width:min(720px,76vw);aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle,var(--brand-loader-ambient),transparent 62%);
+    content:"";opacity:0;transform:scale(.72);
+    animation:brand-loader-ambient-breathe 4.2s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  .brand-loader{position:relative;z-index:1;display:flex;width:min(760px,calc(100vw - clamp(32px,8vw,112px)));flex-direction:column;align-items:center;text-align:center}
+  .brand-loader-stage{position:relative;display:grid;width:100%;height:clamp(118px,16vw,190px);place-items:center}
+  .brand-loader-signature{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:clamp(16px,2.2vw,30px);
+    opacity:0;transform:translate3d(0,20%,0) scale(.9);will-change:transform,opacity;
+    animation:brand-loader-signature-in 1.04s .12s cubic-bezier(.16,1,.3,1) forwards,brand-loader-signature-breathe 1.8s 1.16s ease-in-out infinite alternate}
+
+  /* --- 图标外壳：轨道环 + 扫光 + 脉冲（沿用原语言） --- */
+  .brand-loader-logo-shell{position:relative;flex:0 0 auto;width:clamp(62px,7vw,94px);aspect-ratio:1;filter:drop-shadow(0 18px 42px var(--brand-loader-glow))}
+  .brand-loader-logo-shell::before{position:absolute;inset:-12%;border:1px solid color-mix(in srgb,var(--brand-loader-pulse) 34%,transparent);border-radius:30%;content:"";opacity:0;transform:rotate(-18deg) scale(.74);animation:brand-loader-logo-orbit 3s .46s ease-in-out infinite}
+  .brand-loader-logo-visual{position:absolute;inset:0;overflow:hidden;border-radius:24%;opacity:0;transform:rotate(-14deg) scale(.68);will-change:transform,opacity;animation:brand-loader-logo-reveal 1.02s .2s cubic-bezier(.22,1,.36,1) forwards}
+  .brand-loader-logo-visual svg{display:block;width:100%;height:100%}
+  .brand-loader-logo-visual::after{position:absolute;top:-72%;left:0;width:42%;height:250%;background:linear-gradient(90deg,transparent,color-mix(in srgb,#fff 72%,transparent),transparent);content:"";opacity:0;transform:translate3d(-260%,0,0) rotate(24deg);will-change:transform,opacity;animation:brand-loader-logo-sheen 2.1s .84s ease-out forwards}
+  .brand-loader-logo-pulse{position:absolute;inset:16%;border:2px solid var(--brand-loader-pulse);border-radius:28%;opacity:0;transform:scale(.45) rotate(8deg);animation:brand-loader-logo-pulse .92s .76s ease-out 2}
+
+  /* ===== 灵动 X 图标：频谱花瓣 ===== */
+  .x-petal-wrap{transform-box:view-box;transform-origin:50% 50%;transform:rotate(var(--a)) scale(0);
+    animation:x-bloom .9s var(--d) cubic-bezier(.34,1.56,.64,1) forwards,
+              x-flutter 3s calc(var(--d) + 1s) ease-in-out infinite alternate}
+  .x-glow{transform-box:view-box;transform-origin:50% 50%;opacity:0;animation:x-glow-pulse .9s 1.05s cubic-bezier(.22,1,.36,1) forwards}
+  .x-core{transform-box:view-box;transform-origin:50% 50%;opacity:0;
+    animation:x-core-in .6s 1s cubic-bezier(.22,1,.36,1) forwards,
+              x-core-pulse 2.4s 1.6s ease-in-out infinite alternate}
+
+  /* --- 字标 Canvas / AI --- */
+  .brand-loader-wordmark{position:relative;display:flex;min-width:0;align-items:baseline;gap:clamp(10px,1.5vw,20px);color:var(--brand-loader-text);font-size:clamp(42px,6vw,82px);line-height:1;white-space:nowrap}
+  .brand-loader-wordmark>span{--d:.42s;display:inline-block;color:transparent;background:linear-gradient(104deg,var(--brand-loader-text) 0,var(--brand-loader-text) 38%,var(--brand-loader-muted) 49%,var(--brand-loader-text) 61%,var(--brand-loader-text) 100%);background-position:100% 50%;background-size:260% 100%;-webkit-background-clip:text;background-clip:text;opacity:0;transform:translate3d(28px,0,0) skewX(-5deg);will-change:transform,opacity;animation:brand-loader-wordmark-settle .82s var(--d) cubic-bezier(.16,1,.3,1) forwards}
+  .brand-loader-wordmark>span:first-child{font-weight:780;letter-spacing:-.06em}
+  .brand-loader-wordmark>span:last-child{--d:.6s;font-size:1em;font-weight:780;letter-spacing:-.04em}
+  .brand-loader-wordmark::after{position:absolute;right:0;bottom:-14px;left:0;height:2px;border-radius:999px;background:var(--brand-loader-progress-gradient);content:"";opacity:0;transform:scaleX(0);transform-origin:center;animation:brand-loader-wordmark-trace 1.42s .86s cubic-bezier(.65,0,.35,1) forwards}
+
+  .brand-loader-tagline{margin-top:clamp(8px,1.5dvh,16px);color:var(--brand-loader-muted);font-size:clamp(13px,1.5vw,15px);font-weight:500;line-height:1.5;letter-spacing:.08em;opacity:0;transform:translateY(8px);animation:brand-loader-copy-in .62s 1.48s cubic-bezier(.22,1,.36,1) forwards}
+  .brand-loader-progress{position:relative;width:min(260px,58vw);height:2px;margin-top:clamp(22px,3dvh,32px);overflow:hidden;border-radius:999px;background:var(--brand-loader-track);opacity:0;animation:brand-loader-progress-in .4s 1.78s ease-out forwards}
+  .brand-loader-progress span{position:absolute;inset:0;border-radius:inherit;background:var(--brand-loader-progress-gradient);transform:scaleX(0);transform-origin:left center;animation:brand-loader-progress-load 2.5s 1.5s cubic-bezier(.65,0,.35,1) forwards}
+
+  /* ===== keyframes（与 boot.css 一致） ===== */
+  @keyframes brand-loader-ambient-breathe{0%{opacity:0;transform:scale(.72)}38%{opacity:.72;transform:scale(1)}72%{opacity:.42;transform:scale(1.08)}100%{opacity:.58;transform:scale(1.02)}}
+  @keyframes brand-loader-signature-in{from{opacity:0;transform:translate3d(0,20%,0) scale(.9)}72%{opacity:1;transform:translate3d(0,-2%,0) scale(1.015)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+  @keyframes brand-loader-signature-breathe{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(0,-3px,0) scale(1.006)}}
+  @keyframes brand-loader-logo-reveal{0%{opacity:0;transform:rotate(-14deg) scale(.68)}28%{opacity:1}100%{opacity:1;transform:rotate(0) scale(1)}}
+  @keyframes brand-loader-logo-orbit{0%{opacity:0;transform:rotate(-18deg) scale(.74)}26%{opacity:.42}58%{opacity:.18;transform:rotate(104deg) scale(1.06)}100%{opacity:0;transform:rotate(206deg) scale(1.28)}}
+  @keyframes brand-loader-logo-sheen{0%{opacity:0;transform:translate3d(-260%,0,0) rotate(24deg)}12%{opacity:.68}38%{opacity:0;transform:translate3d(360%,0,0) rotate(24deg)}58%{opacity:0;transform:translate3d(-260%,0,0) rotate(24deg)}72%{opacity:.48}100%{opacity:0;transform:translate3d(360%,0,0) rotate(24deg)}}
+  @keyframes brand-loader-logo-pulse{0%{opacity:0;transform:scale(.45) rotate(8deg)}24%{opacity:.72}100%{opacity:0;transform:scale(2) rotate(0)}}
+  @keyframes brand-loader-wordmark-settle{from{opacity:0;transform:translate3d(28px,0,0) skewX(-5deg)}to{opacity:1;transform:translate3d(0,0,0) skewX(0)}}
+  @keyframes brand-loader-wordmark-trace{0%{opacity:0;transform:scaleX(0)}38%{opacity:.82;transform:scaleX(1)}100%{opacity:0;transform:scaleX(.18)}}
+  @keyframes brand-loader-copy-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes brand-loader-progress-in{to{opacity:1}}
+  @keyframes brand-loader-progress-load{to{transform:scaleX(.88)}}
+  @keyframes x-bloom{from{transform:rotate(var(--a)) scale(0)}to{transform:rotate(var(--a)) scale(var(--s))}}
+  @keyframes x-flutter{from{transform:rotate(var(--a)) scale(var(--s))}to{transform:rotate(var(--a)) scale(calc(var(--s) * 1.06))}}
+  @keyframes x-glow-pulse{0%{opacity:0;transform:scale(.4)}40%{opacity:.9;transform:scale(1.15)}100%{opacity:.28;transform:scale(1)}}
+  @keyframes x-core-in{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+  @keyframes x-core-pulse{from{transform:scale(1)}to{transform:scale(1.18)}}
+
+  @media (max-width:560px){
+    .brand-loader-stage{height:clamp(176px,48vw,220px)}
+    .brand-loader-signature{flex-direction:column;gap:24px}
+    .brand-loader-wordmark{font-size:clamp(34px,10vw,52px)}
+  }
+</style>
+</head>
+<body>
+  <div class="preview-bar">
+    <button id="replay">↻ 重播动画</button>
+    <button id="theme">◐ 切换深/浅色</button>
+    <span class="hint">这是设计预览页，非产品代码</span>
+  </div>
+
+  <div id="v2-initial-loader" role="status" aria-live="polite" aria-label="Canvas AI 正在启动">
+    <div class="brand-loader">
+      <div class="brand-loader-stage" aria-hidden="true">
+        <div class="brand-loader-signature">
+          <div class="brand-loader-logo-shell">
+            <div class="brand-loader-logo-visual">
+              <!-- ===== 新图标：灵动 X · 频谱花瓣 ===== -->
+              <svg viewBox="0 0 256 256" role="img" aria-label="Canvas AI X mark">
+                <defs>
+                  <radialGradient id="xGlow" cx=".5" cy=".5" r=".5">
+                    <stop offset="0" stop-color="#fff" stop-opacity=".85"/>
+                    <stop offset=".5" stop-color="#F65391" stop-opacity=".32"/>
+                    <stop offset="1" stop-color="#F65391" stop-opacity="0"/>
+                  </radialGradient>
+                  <radialGradient id="xCore" cx=".5" cy=".5" r=".5">
+                    <stop offset="0" stop-color="#fff"/>
+                    <stop offset=".55" stop-color="#F65391"/>
+                    <stop offset="1" stop-color="#A84DCE"/>
+                  </radialGradient>
+                  <path id="xPetal" d="M128 128 C104 100 100 62 128 30 C156 62 152 100 128 128 Z"/>
+                </defs>
+                <circle class="x-glow" cx="128" cy="128" r="60" fill="url(#xGlow)"/>
+                <!-- 4 片中花瓣（填 X 的四向空隙） -->
+                <g class="x-petal-wrap" style="--a:0deg;--s:.68;--d:.55s"><use href="#xPetal" fill="#2E50F6" opacity=".92"/></g>
+                <g class="x-petal-wrap" style="--a:90deg;--s:.68;--d:.61s"><use href="#xPetal" fill="#A84DCE" opacity=".92"/></g>
+                <g class="x-petal-wrap" style="--a:180deg;--s:.68;--d:.67s"><use href="#xPetal" fill="#FB6474" opacity=".92"/></g>
+                <g class="x-petal-wrap" style="--a:270deg;--s:.68;--d:.73s"><use href="#xPetal" fill="#FDB73F" opacity=".92"/></g>
+                <!-- 4 片大花瓣（撑出 X 的四臂） -->
+                <g class="x-petal-wrap" style="--a:45deg;--s:1;--d:.25s"><use href="#xPetal" fill="#4F50F3"/></g>
+                <g class="x-petal-wrap" style="--a:135deg;--s:1;--d:.33s"><use href="#xPetal" fill="#F65391"/></g>
+                <g class="x-petal-wrap" style="--a:225deg;--s:1;--d:.41s"><use href="#xPetal" fill="#FF7657"/></g>
+                <g class="x-petal-wrap" style="--a:315deg;--s:1;--d:.49s"><use href="#xPetal" fill="#0D50FF"/></g>
+                <!-- 8 片小花瓣（内圈，增加层次） -->
+                <g class="x-petal-wrap" style="--a:22.5deg;--s:.38;--d:.80s"><use href="#xPetal" fill="#6E7BFF"/></g>
+                <g class="x-petal-wrap" style="--a:67.5deg;--s:.38;--d:.84s"><use href="#xPetal" fill="#9A6CF0"/></g>
+                <g class="x-petal-wrap" style="--a:112.5deg;--s:.38;--d:.88s"><use href="#xPetal" fill="#E070C0"/></g>
+                <g class="x-petal-wrap" style="--a:157.5deg;--s:.38;--d:.92s"><use href="#xPetal" fill="#FF8FA3"/></g>
+                <g class="x-petal-wrap" style="--a:202.5deg;--s:.38;--d:.96s"><use href="#xPetal" fill="#FF9A76"/></g>
+                <g class="x-petal-wrap" style="--a:247.5deg;--s:.38;--d:1s"><use href="#xPetal" fill="#FFC069"/></g>
+                <g class="x-petal-wrap" style="--a:292.5deg;--s:.38;--d:1.04s"><use href="#xPetal" fill="#FFD37A"/></g>
+                <g class="x-petal-wrap" style="--a:337.5deg;--s:.38;--d:1.08s"><use href="#xPetal" fill="#5B8BFF"/></g>
+                <circle class="x-core" cx="128" cy="128" r="16" fill="url(#xCore)"/>
+              </svg>
+            </div>
+            <span class="brand-loader-logo-pulse"></span>
+          </div>
+          <div class="brand-loader-wordmark"><span>Canvas</span><span>AI</span></div>
+        </div>
+      </div>
+      <div class="brand-loader-tagline">用字幕承载故事，把想法交付成片</div>
+      <div class="brand-loader-progress" aria-hidden="true"><span></span></div>
+    </div>
+  </div>
+
+<script>
+  const loader = document.getElementById('v2-initial-loader');
+  function replay(){
+    const clone = loader.cloneNode(true);
+    loader.replaceWith(clone);
+    window.__loader = clone;
+  }
+  document.getElementById('replay').addEventListener('click', ()=>{
+    const node = document.getElementById('v2-initial-loader');
+    const clone = node.cloneNode(true);
+    node.replaceWith(clone);
+  });
+  document.getElementById('theme').addEventListener('click', ()=>{
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+</script>
+</body>
+</html>

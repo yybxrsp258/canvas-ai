@@ -1,0 +1,29 @@
+{
+  "name": "canvas-ai",
+  "version": "0.1.5",
+  "private": true,
+  "description": "Canvas AI - AI creative canvas desktop app",
+  "author": "Canvas AI",
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "backend:freeze": "pyinstaller --onefile --noconfirm --clean --name canvasai-backend --distpath .electron-runtime/runtime/backend --workpath .reference/pyi-build --specpath .reference --paths . --collect-all certifi --hidden-import requests --hidden-import pypdf server.py",
+    "icon": "python tools/make-icon.py",
+    "dist": "electron-builder --win --x64",
+    "dist:dir": "electron-builder --win --x64 --dir",
+    "release": "node tools/release.mjs",
+    "publish:oss": "node tools/publish-oss.mjs"
+  },
+  "devDependencies": {
+    "@electron/asar": "^4.3.0",
+    "electron": "^43.1.0",
+    "electron-builder": "^26.15.3",
+    "webcrack": "^2.16.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "extract-zip": "^2.0.1",
+    "yazl": "^3.3.1"
+  }
+}

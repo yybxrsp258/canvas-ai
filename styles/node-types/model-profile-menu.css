@@ -1,0 +1,6 @@
+.node-model-submenu:has(
+> .node-menu-item:is([data-provider=minimax],[data-provider=agnes],[data-provider=runninghub])
+> .model-provider-profile-badges > .model-provider-profile-badge
+){--model-profile-name-width:150px;width:min(320px,calc(100vw - 32px))}.node-model-submenu>.node-menu-item:is([data-provider=minimax],[data-provider=agnes],[data-provider=runninghub]):has(
+> .model-provider-profile-badges > .model-provider-profile-badge
+)>.fmi-content{flex:0 1 var(--model-profile-name-width)}.node-model-submenu>.node-menu-item:is([data-provider=minimax],[data-provider=agnes],[data-provider=runninghub])>.model-provider-profile-badges:has(> .model-provider-profile-badge){margin-left:auto}

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">SHUO Canvas mark</title>
+  <desc id="desc">A spectrum petal-flower mark whose four large petals form an X, with a glowing core.</desc>
+  <defs>
+    <radialGradient id="xCore" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".55" stop-color="#F65391"/>
+      <stop offset="1" stop-color="#A84DCE"/>
+    </radialGradient>
+    <path id="xPetal" d="M128 128 C104 100 100 62 128 30 C156 62 152 100 128 128 Z"/>
+  </defs>
+  <!-- 4 片中花瓣（填 X 的四向空隙） -->
+  <use href="#xPetal" fill="#2E50F6" opacity=".92" transform="rotate(0 128 128) translate(128 128) scale(.68) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#A84DCE" opacity=".92" transform="rotate(90 128 128) translate(128 128) scale(.68) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#FB6474" opacity=".92" transform="rotate(180 128 128) translate(128 128) scale(.68) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#FDB73F" opacity=".92" transform="rotate(270 128 128) translate(128 128) scale(.68) translate(-128 -128)"/>
+  <!-- 4 片大花瓣（撑出 X 的四臂） -->
+  <use href="#xPetal" fill="#4F50F3" transform="rotate(45 128 128)"/>
+  <use href="#xPetal" fill="#F65391" transform="rotate(135 128 128)"/>
+  <use href="#xPetal" fill="#FF7657" transform="rotate(225 128 128)"/>
+  <use href="#xPetal" fill="#0D50FF" transform="rotate(315 128 128)"/>
+  <!-- 8 片小花瓣（内圈层次） -->
+  <use href="#xPetal" fill="#6E7BFF" transform="rotate(22.5 128 128) translate(128 128) scale(.38) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#9A6CF0" transform="rotate(67.5 128 128) translate(128 128) scale(.38) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#E070C0" transform="rotate(112.5 128 128) translate(128 128) scale(.38) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#FF8FA3" transform="rotate(157.5 128 128) translate(128 128) scale(.38) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#FF9A76" transform="rotate(202.5 128 128) translate(128 128) scale(.38) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#FFC069" transform="rotate(247.5 128 128) translate(128 128) scale(.38) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#FFD37A" transform="rotate(292.5 128 128) translate(128 128) scale(.38) translate(-128 -128)"/>
+  <use href="#xPetal" fill="#5B8BFF" transform="rotate(337.5 128 128) translate(128 128) scale(.38) translate(-128 -128)"/>
+  <circle cx="128" cy="128" r="16" fill="url(#xCore)"/>
+</svg>
